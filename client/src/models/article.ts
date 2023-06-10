@@ -1,5 +1,6 @@
 export interface Article {
+    id: string | null,
     content: string,
-    createdAt: Date, 
-    updatedAt: Date, 
+    createdAt: Date | null, 
+    updatedAt: Date | null, 
 }

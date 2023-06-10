@@ -6,5 +6,7 @@ import (
 )
 
 func MapArticleRoutes(articleGroup *gin.RouterGroup, h article.Handlers) {
-    articleGroup.GET("/post", h.GetArticle())
+    articleGroup.GET("/", h.GetAllArticles())
+    articleGroup.GET("/:id", h.GetArticle())
+    articleGroup.POST("/", h.CreateArticle())
 }

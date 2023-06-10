@@ -11,9 +11,13 @@
   },
   "dependencies": {
     "axios": "^1.4.0",
+    "draft-js": "^0.11.7",
     "html-react-parser": "^4.0.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-draft-wysiwyg": "^1.15.0",
+    "react-quill": "^2.0.0",
+    "react-router-dom": "^6.12.1"
   },
   "devDependencies": {
     "@types/react": "^18.0.37",

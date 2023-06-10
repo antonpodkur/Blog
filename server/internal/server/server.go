@@ -4,15 +4,21 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/antonpodkur/Blog/config"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Server struct {
+    cfg *config.Config
+    mongoClient *mongo.Client
     router *gin.Engine
 }
 
-func NewServer(router *gin.Engine) *Server {
+func NewServer(cfg *config.Config, mongoClient *mongo.Client, router *gin.Engine) *Server {
     return &Server{
+        cfg: cfg,
+        mongoClient: mongoClient,
         router: router,
     }
 }
