@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react"
 import { Article } from "../models/article"
-import parse from "html-react-parser"
 import axios from "axios"
 import { useParams } from "react-router-dom"
+import ReactMarkdown from "react-markdown"
 
 const BlogPage: React.FC = () => {
     const {id} = useParams()
@@ -41,8 +41,8 @@ const BlogPage: React.FC = () => {
     }
 
     return (
-        <div className="flex flex-col items-center justify-center ">
-            <div>{parse(article!.content)}</div>
+        <div className="flex flex-col  justify-center ">
+            <ReactMarkdown className="prose lg:prose-xl">{article!.content}</ReactMarkdown>
         </div>    
     )
 }

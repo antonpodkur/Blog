@@ -1,11 +1,38 @@
-import axios from "axios"
-import { useEffect, useState } from "react"
-import ReactQuill from "react-quill"
-import 'react-quill/dist/quill.snow.css'
-import { Article } from "../models/article"
+import  SimpleMDEditor  from 'react-simplemde-editor'
+import 'easymde/dist/easymde.min.css'
+import { useMemo, useState } from 'react'
+import { Article } from '../models/article'
+import axios from 'axios'
+
+type ImageUploadType = {
+   (image: File, 
+   onSuccess: (url: string) => void, 
+   onError: (errorMessage: string) => void) : void
+}
 
 const TextEditor: React.FC = () => {
-    const [value, setValue] = useState<string>('')
+    const [value, setValue] = useState("")
+
+    const handleValueChange = (value: string) => {
+        console.log(value)
+        setValue(value)
+    }
+
+    const imageUpload: ImageUploadType = async (image, onSuccess, onError) => {
+        try {
+            const data = new FormData()
+            data.append("file", image)
+            const res = await axios.post("http://localhost:4000/api/v1/files/", data)
+            if (res.status !== 201) {
+                    throw new Error(res.data.message)
+            }
+            const imageUrl = `http://localhost:4000/api/v1/files/${res.data.data}`
+            console.log(imageUrl)
+            onSuccess(imageUrl)
+        } catch (error) {
+            return onError(error)
+        } 
+    }
 
     const CreateArticle = async () => {
         const article: Article = {
@@ -13,7 +40,7 @@ const TextEditor: React.FC = () => {
             content: value,
             createdAt: null,
             updatedAt: null,
-            }
+        }
         const result = await axios.post("http://localhost:4000/api/v1/article/", article);   
         if (result.status !== 201) {
             console.log("Error creating article")
@@ -21,17 +48,27 @@ const TextEditor: React.FC = () => {
         console.log(result.data.data)
     }
 
-    useEffect(() => {
-        console.log(value)
+    const newOptions = useMemo(() => {
+        return {
+            spellChecker: false,
+            showIcons: ["strikethrough", "table", "code", "upload-image"],
+            hideIcons: ["image"],
+            uploadImage: true,
+            imageUploadFunction: imageUpload
+        }
+    }, [])
 
-    }, [value])
-    
     return (
         <div>
-            <ReactQuill theme="snow" value={value} onChange={setValue} />
-            <button onClick={async () => CreateArticle()}>Create</button>
+            <SimpleMDEditor
+                id='editor'
+                value={value}
+                onChange={handleValueChange}
+                options = {newOptions}
+            />
+            <button onClick={() => CreateArticle()}>Save</button>
         </div>
-    )
+    ) 
 }
 
 export default TextEditor
