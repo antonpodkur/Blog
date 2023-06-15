@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 
 	"github.com/antonpodkur/Blog/internal/files"
+	"github.com/antonpodkur/Blog/pkg/image"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type filesHandlers struct {
@@ -20,35 +20,43 @@ func NewFilesHandlers() files.Handlers {
 
 func (fh *filesHandlers) Upload() gin.HandlerFunc {
     return func(c *gin.Context) {
-        file, err := c.FormFile("file")
+        _, err := os.Stat("data")    
+        if os.IsNotExist(err) {
+            errDir := os.MkdirAll("data", 0755)
+            if errDir != nil {
+                c.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "message": "internal system error raised"})
+                return
+            }
+        }
+
+        fileheader, err := c.FormFile("file")
         if err != nil {
             c.JSON(http.StatusBadRequest, gin.H{"status": "error", "error": err.Error()})
             return
         }
 
-        id, _ := uuid.NewRandom()
-        fileId := id.String() 
 
-        dst, err := os.Create(filepath.Join("data", fileId+filepath.Ext(file.Filename)))
+        file, err := fileheader.Open()
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "error": err.Error()})
+            return
+        }
+        defer file.Close()
+
+        buffer, err := io.ReadAll(file)
         if err != nil {
             c.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "error": err.Error()})
             return
         }
 
-        defer dst.Close()
-
-        openedFile, err := file.Open()
+        filename, err := image.ImageProcessing(buffer, 40, "data")
         if err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "error": err.Error()})
+            c.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "error": "Error processing file"})
             return
         }
 
-        if _, err := io.Copy(dst, openedFile); err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "error": err.Error()})
-            return
-        }
-
-        c.JSON(http.StatusCreated, gin.H{"status": "success", "data": fileId+filepath.Ext(file.Filename)})
+        fileUrl := "http://localhost:4000/api/v1/files/" + filename
+        c.JSON(http.StatusCreated, gin.H{"status": "success", "data": gin.H{"file": fileUrl}})
     }
 }
 

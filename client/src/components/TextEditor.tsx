@@ -26,8 +26,7 @@ const TextEditor: React.FC = () => {
             if (res.status !== 201) {
                     throw new Error(res.data.message)
             }
-            const imageUrl = `http://localhost:4000/api/v1/files/${res.data.data}`
-            console.log(imageUrl)
+            const imageUrl = res.data.data.file
             onSuccess(imageUrl)
         } catch (error) {
             return onError(error)
