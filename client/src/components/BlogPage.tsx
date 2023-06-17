@@ -3,6 +3,7 @@ import { Article } from "../models/article"
 import axios from "axios"
 import { useParams } from "react-router-dom"
 import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 
 const BlogPage: React.FC = () => {
     const {id} = useParams()
@@ -42,7 +43,7 @@ const BlogPage: React.FC = () => {
 
     return (
         <div className="flex flex-col  justify-center ">
-            <ReactMarkdown className="prose lg:prose-xl">{article!.content}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose lg:prose-xl">{article!.content}</ReactMarkdown>
         </div>    
     )
 }
