@@ -10,6 +10,7 @@ const axiosInstance = axios.create({
 export const useAxios = () => {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn)
   const setLoggedIn = useAuthStore((state) => state.setLoggedIn)
+  const reset = useAuthStore((state) => state.reset)
 
   axiosInstance.interceptors.response.use(
     (response) => {
@@ -28,7 +29,7 @@ export const useAxios = () => {
           if (newResponse.status === 200) {
             setLoggedIn(true)
           } else {
-            setLoggedIn(false)
+            reset()
           }
           return axiosInstance(originalRequest)
         } catch (error) {
