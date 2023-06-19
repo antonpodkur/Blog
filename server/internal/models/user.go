@@ -42,6 +42,11 @@ type UserResponse struct {
 	UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
 }
 
+type UserWithTokenResponse struct {
+	User        UserResponse `json:"user"`
+	AccessToken string       `json:"access_token"`
+}
+
 func UserFilteredResponse(user *UserDBResponse) UserResponse {
 	return UserResponse{
 		ID:        user.ID,

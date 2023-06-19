@@ -95,7 +95,10 @@ func (h *authHandlers) SignIn() gin.HandlerFunc {
 		c.SetCookie("refresh_token", refresh_token, h.cfg.Jwt.RefreshTokenMaxAge*60, "/", "localhost", false, true)
 		c.SetCookie("logged_in", "true", h.cfg.Jwt.AccessTokenMaxAge*60, "/", "localhost", false, false)
 
-		c.JSON(http.StatusOK, gin.H{"status": "success", "access_token": access_token})
+		userFiltered := models.UserFilteredResponse(user)
+		userWithToken := models.UserWithTokenResponse{User: userFiltered, AccessToken: access_token}
+
+		c.JSON(http.StatusOK, gin.H{"status": "success", "data": userWithToken})
 	}
 }
 

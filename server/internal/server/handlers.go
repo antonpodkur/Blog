@@ -34,7 +34,7 @@ func (s *Server) MapHandlers(router *gin.Engine) error {
 
     
     // init middleware manager
-    mv := middleware.NewMiddlewareManager(s.cfg, authUsecase)
+    mw := middleware.NewMiddlewareManager(s.cfg, authUsecase)
 
     // create router groups
     v1 := router.Group("api/v1")
@@ -45,9 +45,9 @@ func (s *Server) MapHandlers(router *gin.Engine) error {
 
 
     // map routes
-    authDelivery.MapAuthRoutes(authGroup, authHandlers, mv)
-    articleDelivery.MapArticleRoutes(articleGroup, articleHandlers)
-    filesDelivery.MapFilesRoutes(filesGroup, filesHandlers)
+    authDelivery.MapAuthRoutes(authGroup, authHandlers, mw)
+    articleDelivery.MapArticleRoutes(articleGroup, articleHandlers, mw)
+    filesDelivery.MapFilesRoutes(filesGroup, filesHandlers, mw)
 
     return nil
 }

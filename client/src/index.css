@@ -2,3 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+.editor-toolbar button
+{
+    width: 15px;
+}
