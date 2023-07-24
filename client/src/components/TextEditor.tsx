@@ -2,10 +2,10 @@ import SimpleMDEditor from 'react-simplemde-editor'
 import 'easymde/dist/easymde.min.css'
 import { useMemo, useState } from 'react'
 import { Article } from '../models/article'
-import axios from 'axios'
 import { useAuthStore } from '../store/store'
 import { User } from '../models/user'
 import EasyMDE from 'easymde'
+import { useAxios } from '../api/axios'
 
 type ImageUploadType = {
   (image: File,
@@ -17,6 +17,7 @@ const TextEditor: React.FC = () => {
   const [title, setTitle] = useState("")
   const [value, setValue] = useState("")
   const user: User | null = useAuthStore((state) => state.user)
+  const axios = useAxios()
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value)

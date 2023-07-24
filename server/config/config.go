@@ -8,9 +8,10 @@ import (
 )
 
 type Config struct {
-	Server ServerConfig
-	Mongo  MongoConfig
-	Jwt    JwtConfig
+	Server   ServerConfig
+	Mongo    MongoConfig
+	Postgres PostgresConfig
+	Jwt      JwtConfig
 }
 
 type ServerConfig struct {
@@ -19,7 +20,17 @@ type ServerConfig struct {
 
 type MongoConfig struct {
 	MongoURI string
-    DbName string
+	DbName   string
+}
+
+type PostgresConfig struct {
+	Driver   string
+	Source   string
+	Host     string
+	Port     int
+	User     string
+	Password string
+	Db       string
 }
 
 type JwtConfig struct {
@@ -63,8 +74,8 @@ func ParseConfig(v *viper.Viper) (*Config, error) {
 }
 
 func GetConfigPath(configPath string) string {
-   if configPath == "docker" {
-       return "./config/config-docker"
-   }
-   return "./config/config-local"
+	if configPath == "docker" {
+		return "./config/config-docker"
+	}
+	return "./config/config-local"
 }

@@ -33,6 +33,7 @@ export const useAxios = () => {
           }
           return axiosInstance(originalRequest)
         } catch (error) {
+          reset()
           console.warn("Failed to refresh token ", error)
         }
       }

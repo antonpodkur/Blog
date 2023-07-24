@@ -13,41 +13,38 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
 func (s *Server) MapHandlers(router *gin.Engine) error {
-    ctx := context.TODO()
+	ctx := context.TODO()
 
-    corsConfig := cors.DefaultConfig()
-    corsConfig.AllowOrigins = []string{"http://localhost:5173", "http://localhost:5174"}
-    corsConfig.AllowCredentials = true
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{"http://localhost:5173", "http://localhost:5174"}
+	corsConfig.AllowCredentials = true
 
-    router.Use(cors.New(corsConfig))
+	router.Use(cors.New(corsConfig))
 
-    //init usecases
-    authUsecase := authUC.NewAuthUsecase(s.cfg, s.mongoClient, ctx)
-    articleUsecase := articleUC.NewArticleUsecase(s.cfg, s.mongoClient)
+	//init usecases
+	authUsecase := authUC.NewAuthUsecase(s.cfg, s.mongoClient, s.db, ctx)
+	articleUsecase := articleUC.NewArticleUsecase(s.cfg, s.mongoClient)
 
-    // init handlers
-    authHandlers := authDelivery.NewAuthHandlers(s.cfg, authUsecase)
-    articleHandlers := articleDelivery.NewArticleHandlers(articleUsecase)
-    filesHandlers := filesDelivery.NewFilesHandlers()
+	// init handlers
+	authHandlers := authDelivery.NewAuthHandlers(s.cfg, authUsecase)
+	articleHandlers := articleDelivery.NewArticleHandlers(articleUsecase)
+	filesHandlers := filesDelivery.NewFilesHandlers()
 
-    
-    // init middleware manager
-    mw := middleware.NewMiddlewareManager(s.cfg, authUsecase)
+	// init middleware manager
+	mw := middleware.NewMiddlewareManager(s.cfg, authUsecase)
 
-    // create router groups
-    v1 := router.Group("api/v1")
+	// create router groups
+	v1 := router.Group("api/v1")
 
-    authGroup := v1.Group("auth")
-    articleGroup := v1.Group("article")
-    filesGroup := v1.Group("files")
+	authGroup := v1.Group("auth")
+	articleGroup := v1.Group("article")
+	filesGroup := v1.Group("files")
 
+	// map routes
+	authDelivery.MapAuthRoutes(authGroup, authHandlers, mw)
+	articleDelivery.MapArticleRoutes(articleGroup, articleHandlers, mw)
+	filesDelivery.MapFilesRoutes(filesGroup, filesHandlers, mw)
 
-    // map routes
-    authDelivery.MapAuthRoutes(authGroup, authHandlers, mw)
-    articleDelivery.MapArticleRoutes(articleGroup, articleHandlers, mw)
-    filesDelivery.MapFilesRoutes(filesGroup, filesHandlers, mw)
-
-    return nil
+	return nil
 }

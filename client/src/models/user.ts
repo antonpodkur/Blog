@@ -13,3 +13,27 @@ export interface UserSignUp {
   password: string,
   passwordConfirm: string
 }
+
+export interface UserSignIn {
+  email: string,
+  password: string
+}
+
+export interface UserResponse {
+  id: string | null,
+  email: string,
+  name: string,
+  role: string,
+  created_at: Date,
+  updated_at: Date
+}
+
+export const mapUserResponseToUser = (response: UserResponse): User => {
+  const user: User = {
+    ...response,
+    createdAt: response.created_at,
+    updatedAt: response.updated_at
+  }
+
+  return user
+}

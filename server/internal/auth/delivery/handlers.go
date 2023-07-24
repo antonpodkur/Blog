@@ -2,14 +2,14 @@ package delivery
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/antonpodkur/Blog/config"
+	db "github.com/antonpodkur/Blog/db/sqlc"
 	"github.com/antonpodkur/Blog/internal/auth"
 	"github.com/antonpodkur/Blog/internal/models"
 	"github.com/antonpodkur/Blog/pkg/utils"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/mongo"
-	"net/http"
-	"strings"
 )
 
 type authHandlers struct {
@@ -26,31 +26,21 @@ func NewAuthHandlers(cfg *config.Config, authUsecase auth.Usecase) auth.Handlers
 
 func (h *authHandlers) SignUp() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var user *models.SignUpInput
+		var user *db.User
 
 		if err := c.ShouldBindJSON(&user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
 			return
 		}
 
-		if user.Password != user.PasswordConfirm {
-			c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": "Passwords do not match"})
-			return
-		}
-
 		newUser, err := h.authUsecase.SignUp(user)
 
 		if err != nil {
-			if strings.Contains(err.Error(), "email already exist") {
-				c.JSON(http.StatusConflict, gin.H{"status": "error", "message": err.Error()})
-				return
-			}
 			c.JSON(http.StatusBadGateway, gin.H{"status": "error", "message": err.Error()})
 			return
 		}
 
-		c.JSON(http.StatusCreated, gin.H{"status": "success", "data": gin.H{"user": models.UserFilteredResponse(newUser)}})
-
+		c.JSON(http.StatusCreated, gin.H{"status": "success", "data": gin.H{"user": newUser}})
 	}
 }
 
@@ -63,42 +53,19 @@ func (h *authHandlers) SignIn() gin.HandlerFunc {
 			return
 		}
 
-		user, err := h.authUsecase.GetUserByEmail(credentials.Email)
-		if err != nil {
-			if err == mongo.ErrNoDocuments {
-				c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": "Invalid email or password"})
-				return
-			}
-			c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
-			return
-		}
-
-		if err := utils.VerifyPassword(user.Password, credentials.Password); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": "Invalid email or Password"})
-			return
-		}
-
-		// Generate Tokens
-		access_token, err := utils.CreateToken(h.cfg.Jwt.AccessTokenExpiresIn, user.ID, h.cfg.Jwt.AccessTokenPrivateKey)
+		userWithTokens, err := h.authUsecase.SignIn(credentials)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
 			return
 		}
 
-		refresh_token, err := utils.CreateToken(h.cfg.Jwt.RefreshTokenExpiresIn, user.ID, h.cfg.Jwt.RefreshTokenPrivateKey)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
-			return
-		}
-
-		c.SetCookie("access_token", access_token, h.cfg.Jwt.AccessTokenMaxAge*60, "/", "localhost", false, true)
-		c.SetCookie("refresh_token", refresh_token, h.cfg.Jwt.RefreshTokenMaxAge*60, "/", "localhost", false, true)
+		c.SetCookie("access_token", userWithTokens.AccessToken, h.cfg.Jwt.AccessTokenMaxAge*60, "/", "localhost", false, true)
+		c.SetCookie("refresh_token", userWithTokens.RefreshToken, h.cfg.Jwt.RefreshTokenMaxAge*60, "/", "localhost", false, true)
 		c.SetCookie("logged_in", "true", h.cfg.Jwt.AccessTokenMaxAge*60, "/", "localhost", false, false)
 
-		userFiltered := models.UserFilteredResponse(user)
-		userWithToken := models.UserWithTokenResponse{User: userFiltered, AccessToken: access_token}
+		userWithToken := models.UserWithTokenResponse{User: userWithTokens.User, AccessToken: userWithTokens.AccessToken}
 
-		c.JSON(http.StatusOK, gin.H{"status": "success", "data": userWithToken})
+		c.JSON(http.StatusOK, gin.H{"status": "success", "data": userWithToken.User})
 	}
 }
 
@@ -150,9 +117,9 @@ func (a *authHandlers) LogOut() gin.HandlerFunc {
 
 func (a *authHandlers) GetMe() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		currentUser := c.MustGet("currentUser").(*models.UserDBResponse)
+		currentUser := c.MustGet("currentUser").(*models.UserResponse)
 
-		c.JSON(http.StatusOK, gin.H{"status": "success", "data": gin.H{"user": models.UserFilteredResponse(currentUser)}})
+		c.JSON(http.StatusOK, gin.H{"status": "success", "data": gin.H{"user": currentUser}})
 	}
 }
 

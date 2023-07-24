@@ -21,7 +21,6 @@ const BlogPage: React.FC = () => {
 
     (async () => {
 
-      console.log("I am here")
       try {
         const article = await fetchArticle()
         console.log(article)
@@ -42,7 +41,8 @@ const BlogPage: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col  justify-center ">
+    <div className="flex flex-col justify-center ">
+      <div className="my-6 text-3xl md:text-4xl font-bold text-center">{article!.title}</div>
       <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose lg:prose-xl">{article!.content}</ReactMarkdown>
     </div>
   )
