@@ -7,22 +7,19 @@ import (
 	"github.com/antonpodkur/Blog/config"
 	db "github.com/antonpodkur/Blog/db/sqlc"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Server struct {
-	cfg         *config.Config
-	mongoClient *mongo.Client
-	db          *db.Queries
-	router      *gin.Engine
+	cfg    *config.Config
+	db     *db.Queries
+	router *gin.Engine
 }
 
-func NewServer(cfg *config.Config, mongoClient *mongo.Client, db *db.Queries, router *gin.Engine) *Server {
+func NewServer(cfg *config.Config, db *db.Queries, router *gin.Engine) *Server {
 	return &Server{
-		cfg:         cfg,
-		db:          db,
-		mongoClient: mongoClient,
-		router:      router,
+		cfg:    cfg,
+		db:     db,
+		router: router,
 	}
 }
 

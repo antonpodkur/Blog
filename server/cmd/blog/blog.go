@@ -7,7 +7,6 @@ import (
 	"github.com/antonpodkur/Blog/config"
 	dbConn "github.com/antonpodkur/Blog/db/sqlc"
 	"github.com/antonpodkur/Blog/internal/server"
-	"github.com/antonpodkur/Blog/pkg/db"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 )
@@ -26,8 +25,6 @@ func main() {
 		log.Fatal("ParseConfig: %v", err.Error())
 	}
 
-	mongoClient := db.MongoClient(cfg)
-
 	conn, err := sql.Open(cfg.Postgres.Driver, cfg.Postgres.Source)
 	if err != nil {
 		log.Fatal("could not connect to postgres database")
@@ -37,6 +34,6 @@ func main() {
 
 	router := gin.Default()
 
-	s := server.NewServer(cfg, mongoClient, db, router)
+	s := server.NewServer(cfg, db, router)
 	s.Run()
 }

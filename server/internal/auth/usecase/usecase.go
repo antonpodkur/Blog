@@ -11,22 +11,19 @@ import (
 	"github.com/antonpodkur/Blog/internal/models"
 	"github.com/antonpodkur/Blog/pkg/utils"
 	"github.com/google/uuid"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type authUsecase struct {
-	cfg         *config.Config
-	mongoClient *mongo.Client
-	db          *db.Queries
-	ctx         context.Context
+	cfg *config.Config
+	db  *db.Queries
+	ctx context.Context
 }
 
-func NewAuthUsecase(cfg *config.Config, mongoClient *mongo.Client, db *db.Queries, ctx context.Context) auth.Usecase {
+func NewAuthUsecase(cfg *config.Config, db *db.Queries, ctx context.Context) auth.Usecase {
 	return &authUsecase{
-		cfg:         cfg,
-		mongoClient: mongoClient,
-		db:          db,
-		ctx:         ctx,
+		cfg: cfg,
+		db:  db,
+		ctx: ctx,
 	}
 }
 
