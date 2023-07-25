@@ -1,10 +1,11 @@
 package article
 
-import "github.com/antonpodkur/Blog/internal/models"
-
+import (
+	db "github.com/antonpodkur/Blog/db/sqlc"
+)
 
 type Usecase interface {
-    GetAllArticles() ([]*models.ArticleDbResponse, error)
-    GetArticle(id string) (*models.ArticleDbResponse, error)
-    CreateArticle(article *models.Article) (*models.ArticleDbResponse, error)
+	GetAllArticles() (*[]db.Article, error)
+	GetArticle(id string) (*db.Article, error)
+	CreateArticle(article *db.Article) (*db.Article, error)
 }

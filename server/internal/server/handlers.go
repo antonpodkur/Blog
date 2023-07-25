@@ -24,7 +24,7 @@ func (s *Server) MapHandlers(router *gin.Engine) error {
 
 	//init usecases
 	authUsecase := authUC.NewAuthUsecase(s.cfg, s.mongoClient, s.db, ctx)
-	articleUsecase := articleUC.NewArticleUsecase(s.cfg, s.mongoClient)
+	articleUsecase := articleUC.NewArticleUsecase(s.cfg, s.db)
 
 	// init handlers
 	authHandlers := authDelivery.NewAuthHandlers(s.cfg, authUsecase)

@@ -2,98 +2,69 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/antonpodkur/Blog/config"
+	db "github.com/antonpodkur/Blog/db/sqlc"
 	"github.com/antonpodkur/Blog/internal/article"
-	"github.com/antonpodkur/Blog/internal/models"
-	"github.com/antonpodkur/Blog/pkg/db"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
+	"github.com/google/uuid"
 )
 
 type articleUsecase struct {
-    cfg *config.Config
-    mongoClient *mongo.Client
+	cfg *config.Config
+	db  *db.Queries
 }
 
-func NewArticleUsecase(cfg *config.Config, mongoClient *mongo.Client) article.Usecase {
-    return &articleUsecase{
-        cfg: cfg,
-        mongoClient: mongoClient,
-    }
+func NewArticleUsecase(cfg *config.Config, db *db.Queries) article.Usecase {
+	return &articleUsecase{
+		cfg: cfg,
+		db:  db,
+	}
 }
 
-func (au *articleUsecase) GetAllArticles() ([]*models.ArticleDbResponse, error) {
-    articlesCollection := db.OpenCollection(au.mongoClient, au.cfg, "articles")
-    ctx := context.TODO()
-    
-    var articles []*models.ArticleDbResponse
+func (au *articleUsecase) GetAllArticles() (*[]db.Article, error) {
+	ctx := context.TODO()
 
-    cur, err := articlesCollection.Find(ctx, bson.D{})
-    if err != nil {
-        return nil, err
-    }
+	args := &db.ListArticlesParams{Limit: 50, Offset: 0}
 
-    for cur.Next(ctx) {
-        var article *models.ArticleDbResponse
+	articles, err := au.db.ListArticles(ctx, *args)
+	if err != nil {
+		return nil, err
+	}
 
-        err := cur.Decode(&article)
-        if err != nil {
-            return nil, err
-        }
-
-        articles = append(articles, article)
-    }
-    
-    if err := cur.Err(); err != nil {
-        return nil, err
-    }
-
-    cur.Close(ctx)
-
-    return articles, nil 
+	return &articles, nil
 }
 
-func (au *articleUsecase) GetArticle(id string) (*models.ArticleDbResponse, error) {
-    articlesCollection := db.OpenCollection(au.mongoClient, au.cfg, "articles")
-    ctx := context.TODO()
+func (au *articleUsecase) GetArticle(id string) (*db.Article, error) {
+	ctx := context.TODO()
+	uuid, err := uuid.Parse(id)
+	if err != nil {
+		return nil, errors.New("invalid id")
+	}
 
-    oid, _ := primitive.ObjectIDFromHex(id)
+	article, err := au.db.GetArticleById(ctx, uuid)
+	if err != nil {
+		return nil, err
+	}
 
-    var article *models.ArticleDbResponse
-
-    query := bson.M{"_id": oid}
-    err := articlesCollection.FindOne(ctx, query).Decode(&article)
-    if err != nil {
-        return nil, err
-    }
-
-    return article, nil
+	return &article, nil
 }
 
-func (au *articleUsecase) CreateArticle(article *models.Article) (*models.ArticleDbResponse, error) {
-    articlesCollection := db.OpenCollection(au.mongoClient, au.cfg, "articles")
-    ctx := context.TODO()
+func (au *articleUsecase) CreateArticle(article *db.Article) (*db.Article, error) {
+	ctx := context.TODO()
 
-    article.CreatedAt = time.Now()
-    article.UpdatedAt = article.CreatedAt
+	args := db.CreateArticleParams{
+		Title:     article.Title,
+		Content:   article.Content,
+		UpdatedAt: time.Now(),
+		UserID:    article.UserID,
+	}
 
-    res, err := articlesCollection.InsertOne(ctx, &article)
-    if err != nil {
-        return nil, err
-    }
+	createdArticle, err := au.db.CreateArticle(ctx, args)
+	if err != nil {
+		return nil, err
+	}
 
-    var newArticle *models.ArticleDbResponse
-    query := bson.M{"_id": res.InsertedID}
-
-    err = articlesCollection.FindOne(ctx, query).Decode(&newArticle)
-    if err != nil {
-        return nil, err
-    }
-
-    return newArticle, nil
+	return &createdArticle, nil
 }
-
-
