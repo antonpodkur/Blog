@@ -34,7 +34,8 @@ const Login: React.FC = () => {
         setErrMsg(response.data.message)
       }
 
-      const user = mapUserResponseToUser(response.data.data.user as UserResponse)
+      const user = mapUserResponseToUser(response.data.data as UserResponse)
+      console.log(user)
       setUser(user)
       setLoggedIn(true)
       navigate("/")

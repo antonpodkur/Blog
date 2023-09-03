@@ -8,6 +8,7 @@ import (
 	"github.com/antonpodkur/Blog/config"
 	db "github.com/antonpodkur/Blog/db/sqlc"
 	"github.com/antonpodkur/Blog/internal/article"
+	"github.com/antonpodkur/Blog/internal/models"
 	"github.com/google/uuid"
 )
 
@@ -23,7 +24,7 @@ func NewArticleUsecase(cfg *config.Config, db *db.Queries) article.Usecase {
 	}
 }
 
-func (au *articleUsecase) GetAllArticles() (*[]db.Article, error) {
+func (au *articleUsecase) GetAllArticles() (*[]models.ArticleResponse, error) {
 	ctx := context.TODO()
 
 	args := &db.ListArticlesParams{Limit: 50, Offset: 0}
@@ -32,11 +33,13 @@ func (au *articleUsecase) GetAllArticles() (*[]db.Article, error) {
 	if err != nil {
 		return nil, err
 	}
+    
+    responses := models.ArticlesToArticleResponses(&articles)
 
-	return &articles, nil
+	return &responses, nil
 }
 
-func (au *articleUsecase) GetArticle(id string) (*db.Article, error) {
+func (au *articleUsecase) GetArticle(id string) (*models.ArticleResponse, error) {
 	ctx := context.TODO()
 	uuid, err := uuid.Parse(id)
 	if err != nil {
@@ -48,10 +51,12 @@ func (au *articleUsecase) GetArticle(id string) (*db.Article, error) {
 		return nil, err
 	}
 
-	return &article, nil
+    response := models.ArticleToArticleReponse(&article)
+
+	return &response, nil
 }
 
-func (au *articleUsecase) CreateArticle(article *db.Article) (*db.Article, error) {
+func (au *articleUsecase) CreateArticle(article *db.Article) (*models.ArticleResponse, error) {
 	ctx := context.TODO()
 
 	args := db.CreateArticleParams{
@@ -66,5 +71,7 @@ func (au *articleUsecase) CreateArticle(article *db.Article) (*db.Article, error
 		return nil, err
 	}
 
-	return &createdArticle, nil
+    response := models.ArticleToArticleReponse(&createdArticle)
+
+	return &response, nil
 }

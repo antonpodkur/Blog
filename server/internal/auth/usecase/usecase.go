@@ -2,7 +2,9 @@ package usecase
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/antonpodkur/Blog/config"
@@ -28,6 +30,15 @@ func NewAuthUsecase(cfg *config.Config, db *db.Queries, ctx context.Context) aut
 }
 
 func (u *authUsecase) SignUp(user *db.User) (*models.UserResponse, error) {
+    // TODO: move next login separately to not repeat myself
+    _, err := u.db.GetUserByEmail(u.ctx, user.Email);
+    if err != nil  {
+        if !errors.Is(err, sql.ErrNoRows) {
+            return nil, err
+        }
+    } else {
+        return nil, errors.New(fmt.Sprintf("user with email %s already exists", user.Email) )
+    }
 
 	hashedPassword, _ := utils.HashPassword(user.Password)
 

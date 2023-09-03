@@ -1,7 +1,7 @@
 export interface User {
   id: string | null,
-  email: string,
   name: string,
+  email: string,
   role: string,
   createdAt: Date,
   updatedAt: Date
@@ -21,8 +21,8 @@ export interface UserSignIn {
 
 export interface UserResponse {
   id: string | null,
-  email: string,
   name: string,
+  email: string,
   role: string,
   created_at: Date,
   updated_at: Date
