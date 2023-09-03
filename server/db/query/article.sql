@@ -10,16 +10,19 @@ INSERT INTO articles (
 RETURNING *;
 
 -- name: GetArticleById :one
-SELECT * FROM articles
-WHERE id = $1 LIMIT 1;
+SELECT a.id, a.title, a.content, a.created_at, a.updated_at, u.name as user_name, u.photo as user_photo FROM articles a
+LEFT JOIN users u on u.id = a.user_id
+WHERE a.id = $1 LIMIT 1;
 
 -- name: GetArticleByUserId :one
-SELECT * FROM articles
+SELECT a.id, a.title, a.content, a.created_at, a.updated_at, u.name as user_name, u.photo as user_photo FROM articles a
+LEFT JOIN users u on u.id = a.user_id
 WHERE user_id = $1 LIMIT 1;
 
 -- name: ListArticles :many
-SELECT * FROM articles
-ORDER BY id
+SELECT a.id, a.title, a.content, a.created_at, a.updated_at, u.name as user_name, u.photo as user_photo FROM articles a
+LEFT JOIN users u on u.id = a.user_id
+ORDER BY a.id
 LIMIT $1
 OFFSET $2;
 

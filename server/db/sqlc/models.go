@@ -11,22 +11,22 @@ import (
 )
 
 type Article struct {
-	ID        uuid.UUID
-	Title     string
-	Content   string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	UserID    uuid.UUID
+	ID        uuid.UUID `json:"id"`
+	Title     string    `json:"title"`
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	UserID    uuid.UUID `json:"userId"`
 }
 
 type User struct {
-	ID        uuid.UUID
-	Name      string
-	Email     string
-	Photo     string
-	Verified  bool
-	Password  string
-	Role      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	Photo     string    `json:"photo"`
+	Verified  bool      `json:"verified"`
+	Password  string    `json:"password"`
+	Role      string    `json:"role"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }

@@ -12,3 +12,6 @@ migrateup:
 
 migratedown:
 	migrate -path db/migrations -database "${POSTGRES_URL}" -verbose down
+
+generate:
+	sqlc generate

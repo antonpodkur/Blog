@@ -28,13 +28,13 @@ RETURNING id, name, email, photo, verified, password, role, created_at, updated_
 `
 
 type CreateUserParams struct {
-	Name      string
-	Email     string
-	Photo     string
-	Verified  bool
-	Password  string
-	Role      string
-	UpdatedAt time.Time
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	Photo     string    `json:"photo"`
+	Verified  bool      `json:"verified"`
+	Password  string    `json:"password"`
+	Role      string    `json:"role"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -124,8 +124,8 @@ OFFSET $2
 `
 
 type ListUsersParams struct {
-	Limit  int32
-	Offset int32
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
 }
 
 func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error) {
@@ -175,14 +175,14 @@ RETURNING id, name, email, photo, verified, password, role, created_at, updated_
 `
 
 type UpdateUserParams struct {
-	ID        uuid.UUID
-	Name      string
-	Email     string
-	Photo     string
-	Verified  bool
-	Password  string
-	Role      string
-	UpdatedAt time.Time
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	Photo     string    `json:"photo"`
+	Verified  bool      `json:"verified"`
+	Password  string    `json:"password"`
+	Role      string    `json:"role"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {

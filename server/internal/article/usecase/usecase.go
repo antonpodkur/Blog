@@ -8,7 +8,6 @@ import (
 	"github.com/antonpodkur/Blog/config"
 	db "github.com/antonpodkur/Blog/db/sqlc"
 	"github.com/antonpodkur/Blog/internal/article"
-	"github.com/antonpodkur/Blog/internal/models"
 	"github.com/google/uuid"
 )
 
@@ -24,22 +23,21 @@ func NewArticleUsecase(cfg *config.Config, db *db.Queries) article.Usecase {
 	}
 }
 
-func (au *articleUsecase) GetAllArticles() (*[]models.ArticleResponse, error) {
+func (au *articleUsecase) GetAllArticles() (*[]db.ListArticlesRow, error) {
 	ctx := context.TODO()
 
 	args := &db.ListArticlesParams{Limit: 50, Offset: 0}
 
+    // TODO: Work on values that are returned as sql.Null<value>
 	articles, err := au.db.ListArticles(ctx, *args)
 	if err != nil {
 		return nil, err
 	}
-    
-    responses := models.ArticlesToArticleResponses(&articles)
 
-	return &responses, nil
+	return &articles, nil
 }
 
-func (au *articleUsecase) GetArticle(id string) (*models.ArticleResponse, error) {
+func (au *articleUsecase) GetArticle(id string) (*db.GetArticleByIdRow, error) {
 	ctx := context.TODO()
 	uuid, err := uuid.Parse(id)
 	if err != nil {
@@ -51,12 +49,10 @@ func (au *articleUsecase) GetArticle(id string) (*models.ArticleResponse, error)
 		return nil, err
 	}
 
-    response := models.ArticleToArticleReponse(&article)
-
-	return &response, nil
+	return &article, nil
 }
 
-func (au *articleUsecase) CreateArticle(article *db.Article) (*models.ArticleResponse, error) {
+func (au *articleUsecase) CreateArticle(article *db.Article) (*db.Article, error) {
 	ctx := context.TODO()
 
 	args := db.CreateArticleParams{
@@ -71,7 +67,5 @@ func (au *articleUsecase) CreateArticle(article *db.Article) (*models.ArticleRes
 		return nil, err
 	}
 
-    response := models.ArticleToArticleReponse(&createdArticle)
-
-	return &response, nil
+	return &createdArticle, nil
 }

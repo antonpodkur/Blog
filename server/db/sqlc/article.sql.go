@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,10 +26,10 @@ RETURNING id, title, content, created_at, updated_at, user_id
 `
 
 type CreateArticleParams struct {
-	Title     string
-	Content   string
-	UpdatedAt time.Time
-	UserID    uuid.UUID
+	Title     string    `json:"title"`
+	Content   string    `json:"content"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	UserID    uuid.UUID `json:"userId"`
 }
 
 func (q *Queries) CreateArticle(ctx context.Context, arg CreateArticleParams) (Article, error) {
@@ -61,71 +62,107 @@ func (q *Queries) DeleteArticle(ctx context.Context, id uuid.UUID) error {
 }
 
 const getArticleById = `-- name: GetArticleById :one
-SELECT id, title, content, created_at, updated_at, user_id FROM articles
-WHERE id = $1 LIMIT 1
+SELECT a.id, a.title, a.content, a.created_at, a.updated_at, u.name as user_name, u.photo as user_photo FROM articles a
+LEFT JOIN users u on u.id = a.user_id
+WHERE a.id = $1 LIMIT 1
 `
 
-func (q *Queries) GetArticleById(ctx context.Context, id uuid.UUID) (Article, error) {
+type GetArticleByIdRow struct {
+	ID        uuid.UUID      `json:"id"`
+	Title     string         `json:"title"`
+	Content   string         `json:"content"`
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+	UserName  sql.NullString `json:"userName"`
+	UserPhoto sql.NullString `json:"userPhoto"`
+}
+
+func (q *Queries) GetArticleById(ctx context.Context, id uuid.UUID) (GetArticleByIdRow, error) {
 	row := q.db.QueryRowContext(ctx, getArticleById, id)
-	var i Article
+	var i GetArticleByIdRow
 	err := row.Scan(
 		&i.ID,
 		&i.Title,
 		&i.Content,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.UserID,
+		&i.UserName,
+		&i.UserPhoto,
 	)
 	return i, err
 }
 
 const getArticleByUserId = `-- name: GetArticleByUserId :one
-SELECT id, title, content, created_at, updated_at, user_id FROM articles
+SELECT a.id, a.title, a.content, a.created_at, a.updated_at, u.name as user_name, u.photo as user_photo FROM articles a
+LEFT JOIN users u on u.id = a.user_id
 WHERE user_id = $1 LIMIT 1
 `
 
-func (q *Queries) GetArticleByUserId(ctx context.Context, userID uuid.UUID) (Article, error) {
+type GetArticleByUserIdRow struct {
+	ID        uuid.UUID      `json:"id"`
+	Title     string         `json:"title"`
+	Content   string         `json:"content"`
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+	UserName  sql.NullString `json:"userName"`
+	UserPhoto sql.NullString `json:"userPhoto"`
+}
+
+func (q *Queries) GetArticleByUserId(ctx context.Context, userID uuid.UUID) (GetArticleByUserIdRow, error) {
 	row := q.db.QueryRowContext(ctx, getArticleByUserId, userID)
-	var i Article
+	var i GetArticleByUserIdRow
 	err := row.Scan(
 		&i.ID,
 		&i.Title,
 		&i.Content,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.UserID,
+		&i.UserName,
+		&i.UserPhoto,
 	)
 	return i, err
 }
 
 const listArticles = `-- name: ListArticles :many
-SELECT id, title, content, created_at, updated_at, user_id FROM articles
-ORDER BY id
+SELECT a.id, a.title, a.content, a.created_at, a.updated_at, u.name as user_name, u.photo as user_photo FROM articles a
+LEFT JOIN users u on u.id = a.user_id
+ORDER BY a.id
 LIMIT $1
 OFFSET $2
 `
 
 type ListArticlesParams struct {
-	Limit  int32
-	Offset int32
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
 }
 
-func (q *Queries) ListArticles(ctx context.Context, arg ListArticlesParams) ([]Article, error) {
+type ListArticlesRow struct {
+	ID        uuid.UUID      `json:"id"`
+	Title     string         `json:"title"`
+	Content   string         `json:"content"`
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+	UserName  sql.NullString `json:"userName"`
+	UserPhoto sql.NullString `json:"userPhoto"`
+}
+
+func (q *Queries) ListArticles(ctx context.Context, arg ListArticlesParams) ([]ListArticlesRow, error) {
 	rows, err := q.db.QueryContext(ctx, listArticles, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Article
+	var items []ListArticlesRow
 	for rows.Next() {
-		var i Article
+		var i ListArticlesRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Title,
 			&i.Content,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.UserID,
+			&i.UserName,
+			&i.UserPhoto,
 		); err != nil {
 			return nil, err
 		}
@@ -150,10 +187,10 @@ RETURNING id, title, content, created_at, updated_at, user_id
 `
 
 type UpdateArticleParams struct {
-	ID        uuid.UUID
-	Title     string
-	Content   string
-	UpdatedAt time.Time
+	ID        uuid.UUID `json:"id"`
+	Title     string    `json:"title"`
+	Content   string    `json:"content"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 func (q *Queries) UpdateArticle(ctx context.Context, arg UpdateArticleParams) (Article, error) {
